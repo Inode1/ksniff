@@ -25,9 +25,9 @@ type KubernetesApiService interface {
 
 	DeletePod(podName string) error
 
-	CreatePrivilegedPod(nodeName string, containerName string, image string, socketPath string, timeout time.Duration, serviceaccount string) (*corev1.Pod, error)
+	CreatePrivilegedPod(nodeName, containerName, image, socketPath string, timeout time.Duration, serviceaccount, cpu, memory string) (*corev1.Pod, error)
 
-	CreateHostNetworkPod(nodeName string, containerName string, image string, timeout time.Duration) (*corev1.Pod, error)
+	CreateHostNetworkPod(nodeName, containerName, image string, timeout time.Duration, cpu, memory string) (*corev1.Pod, error)
 
 	UploadFile(localPath string, remotePath string, podName string, containerName string) error
 }
@@ -104,7 +104,7 @@ func (k *KubernetesApiServiceImpl) DeletePod(podName string) error {
 	return err
 }
 
-func (k *KubernetesApiServiceImpl) CreatePrivilegedPod(nodeName string, containerName string, image string, socketPath string, timeout time.Duration, serviceaccount string) (*corev1.Pod, error) {
+func (k *KubernetesApiServiceImpl) CreatePrivilegedPod(nodeName, containerName, image, socketPath string, timeout time.Duration, serviceaccount, cpu, memory string) (*corev1.Pod, error) {
 	log.Debugf("creating privileged pod on remote node")
 
 	isSupported, err := k.IsSupportedContainerRuntime(nodeName)
@@ -144,6 +144,14 @@ func (k *KubernetesApiServiceImpl) CreatePrivilegedPod(nodeName string, containe
 		},
 	}
 
+	fakeProbe := &corev1.Probe{
+		Handler: corev1.Handler{
+			Exec: &corev1.ExecAction{
+				Command: []string{"sh", "-c", "echo 'hello'"},
+			},
+		},
+	}
+
 	privileged := true
 	privilegedContainer := corev1.Container{
 		Name:            containerName,
@@ -156,14 +164,16 @@ func (k *KubernetesApiServiceImpl) CreatePrivilegedPod(nodeName string, containe
 		VolumeMounts: volumeMounts,
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("0.1"),
-				corev1.ResourceMemory: resource.MustParse("128Mi"),
+				corev1.ResourceCPU:    resource.MustParse(cpu),
+				corev1.ResourceMemory: resource.MustParse(memory),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("1"),
-				corev1.ResourceMemory: resource.MustParse("256Mi"),
+				corev1.ResourceCPU:    resource.MustParse(cpu),
+				corev1.ResourceMemory: resource.MustParse(memory),
 			},
 		},
+		LivenessProbe:  fakeProbe,
+		ReadinessProbe: fakeProbe,
 	}
 
 	hostPathType := corev1.HostPathSocket
@@ -209,7 +219,7 @@ func (k *KubernetesApiServiceImpl) CreatePrivilegedPod(nodeName string, containe
 	return k.createPod(pod, timeout)
 }
 
-func (k *KubernetesApiServiceImpl) CreateHostNetworkPod(nodeName string, containerName string, image string, timeout time.Duration) (*corev1.Pod, error) {
+func (k *KubernetesApiServiceImpl) CreateHostNetworkPod(nodeName, containerName, image string, timeout time.Duration, cpu, memory string) (*corev1.Pod, error) {
 	log.Debugf("creating host network pod on remote node")
 
 	typeMetadata := v1.TypeMeta{
@@ -227,6 +237,14 @@ func (k *KubernetesApiServiceImpl) CreateHostNetworkPod(nodeName string, contain
 		},
 	}
 
+	fakeProbe := &corev1.Probe{
+		Handler: corev1.Handler{
+			Exec: &corev1.ExecAction{
+				Command: []string{"sh", "-c", "echo 'hello'"},
+			},
+		},
+	}
+
 	container := corev1.Container{
 		Name:            containerName,
 		Image:           image,
@@ -234,14 +252,16 @@ func (k *KubernetesApiServiceImpl) CreateHostNetworkPod(nodeName string, contain
 		Command:         []string{"sh", "-c", "sleep 10000000"},
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("0.1"),
-				corev1.ResourceMemory: resource.MustParse("128Mi"),
+				corev1.ResourceCPU:    resource.MustParse(cpu),
+				corev1.ResourceMemory: resource.MustParse(memory),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("1"),
-				corev1.ResourceMemory: resource.MustParse("256Mi"),
+				corev1.ResourceCPU:    resource.MustParse(cpu),
+				corev1.ResourceMemory: resource.MustParse(memory),
 			},
 		},
+		LivenessProbe:  fakeProbe,
+		ReadinessProbe: fakeProbe,
 	}
 
 	podSpecs := corev1.PodSpec{

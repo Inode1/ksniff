@@ -27,6 +27,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
 
+const (
+	cpuLimit = "250m"
+	memLimit = "256Mi"
+)
+
 var tcpdumpLocalBinaryPathLookupList []string
 
 type Ksniff struct {
@@ -91,6 +96,14 @@ func NewCmdSniff(streams genericclioptions.IOStreams) *cobra.Command {
 	_ = viper.BindEnv("context", "KUBECTL_PLUGINS_CURRENT_CONTEXT")
 	_ = viper.BindPFlag("context", rootCmd.PersistentFlags().Lookup("context"))
 
+	rootCmd.PersistentFlags().StringVar(&ksniffSettings.UserSpecifiedCPU, "cpu", cpuLimit, "cpu limit for tcpdump pod (optional)")
+	_ = viper.BindEnv("cpu", "KUBECTL_PLUGINS_LOCAL_FLAG_CPU")
+	_ = viper.BindPFlag("cpu", rootCmd.PersistentFlags().Lookup("cpu"))
+
+	rootCmd.PersistentFlags().StringVar(&ksniffSettings.UserSpecifiedMemory, "memory", memLimit, "memory limit for tcpdump pod (optional)")
+	_ = viper.BindEnv("memory", "KUBECTL_PLUGINS_LOCAL_FLAG_MEMORY")
+	_ = viper.BindPFlag("memory", rootCmd.PersistentFlags().Lookup("memory"))
+
 	return rootCmd
 }
 
@@ -106,6 +119,8 @@ func (o *Ksniff) Complete(cmd *cobra.Command, args []string) error {
 	o.settings.UserSpecifiedVerboseMode = viper.GetBool("verbose")
 	o.settings.UserSpecifiedPrivilegedMode = viper.GetBool("privileged")
 	o.settings.UserSpecifiedKubeContext = viper.GetString("context")
+	o.settings.UserSpecifiedCPU = viper.GetString("cpu")
+	o.settings.UserSpecifiedMemory = viper.GetString("memory")
 	o.settings.Image = viper.GetString("image")
 	o.settings.TCPDumpImage = viper.GetString("tcpdump-image")
 	o.settings.SocketPath = viper.GetString("socket")
