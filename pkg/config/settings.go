@@ -19,6 +19,8 @@ type KsniffSettings struct {
 	UserSpecifiedVerboseMode       bool
 	UserSpecifiedPrivilegedMode    bool
 	UserSpecifiedImage             string
+	UserSpecifiedCPU               string
+	UserSpecifiedMemory            string
 	DetectedPodNodeName            string
 	DetectedContainerId            string
 	DetectedContainerRuntime       string

@@ -36,6 +36,8 @@ func (p *NodeSnifferService) Setup() error {
 		p.containerName,
 		p.settings.TCPDumpImage,
 		p.settings.UserSpecifiedPodCreateTimeout,
+		p.settings.UserSpecifiedCPU,
+		p.settings.UserSpecifiedMemory,
 	)
 	if err != nil {
 		log.WithError(err).Errorf("failed to create privileged pod on node: '%s'", p.settings.DetectedPodNodeName)
