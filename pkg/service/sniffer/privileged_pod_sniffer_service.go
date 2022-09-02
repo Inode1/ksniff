@@ -38,6 +38,12 @@ func (p *PrivilegedPodSnifferService) Setup() error {
 		p.settings.TCPDumpImage = p.runtimeBridge.GetDefaultTCPImage()
 	}
 
+	// skip pulling tcpdump image if it is the same as the original image
+	switch v := p.runtimeBridge.(type) {
+	case *runtime.ContainerdBridge:
+		v.SkipPull(p.settings.Image == p.settings.TCPDumpImage)
+	}
+
 	if p.settings.UseDefaultSocketPath {
 		p.settings.SocketPath = p.runtimeBridge.GetDefaultSocketPath()
 	}

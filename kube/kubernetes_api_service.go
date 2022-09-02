@@ -27,6 +27,8 @@ type KubernetesApiService interface {
 
 	CreatePrivilegedPod(nodeName string, containerName string, image string, socketPath string, timeout time.Duration, serviceaccount string) (*corev1.Pod, error)
 
+	CreateHostNetworkPod(nodeName string, containerName string, image string, timeout time.Duration) (*corev1.Pod, error)
+
 	UploadFile(localPath string, remotePath string, podName string, containerName string) error
 }
 
@@ -204,6 +206,62 @@ func (k *KubernetesApiServiceImpl) CreatePrivilegedPod(nodeName string, containe
 		Spec:       podSpecs,
 	}
 
+	return k.createPod(pod, timeout)
+}
+
+func (k *KubernetesApiServiceImpl) CreateHostNetworkPod(nodeName string, containerName string, image string, timeout time.Duration) (*corev1.Pod, error) {
+	log.Debugf("creating host network pod on remote node")
+
+	typeMetadata := v1.TypeMeta{
+		Kind:       "Pod",
+		APIVersion: "v1",
+	}
+
+	// https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
+	objectMetadata := v1.ObjectMeta{
+		GenerateName: "ksniff-",
+		Namespace:    k.targetNamespace,
+		Labels: map[string]string{
+			"app":                    "ksniff",
+			"app.kubernetes.io/name": "ksniff",
+		},
+	}
+
+	container := corev1.Container{
+		Name:            containerName,
+		Image:           image,
+		ImagePullPolicy: "IfNotPresent",
+		Command:         []string{"sh", "-c", "sleep 10000000"},
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("0.1"),
+				corev1.ResourceMemory: resource.MustParse("128Mi"),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("1"),
+				corev1.ResourceMemory: resource.MustParse("256Mi"),
+			},
+		},
+	}
+
+	podSpecs := corev1.PodSpec{
+		NodeName:      nodeName,
+		HostNetwork:   true,
+		RestartPolicy: corev1.RestartPolicyNever,
+		HostPID:       true,
+		Containers:    []corev1.Container{container},
+	}
+
+	pod := corev1.Pod{
+		TypeMeta:   typeMetadata,
+		ObjectMeta: objectMetadata,
+		Spec:       podSpecs,
+	}
+
+	return k.createPod(pod, timeout)
+}
+
+func (k *KubernetesApiServiceImpl) createPod(pod corev1.Pod, timeout time.Duration) (*corev1.Pod, error) {
 	createdPod, err := k.clientset.CoreV1().Pods(k.targetNamespace).Create(context.TODO(), &pod, v1.CreateOptions{})
 	if err != nil {
 		return nil, err

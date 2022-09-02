@@ -19,6 +19,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
+	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
 	gopkg.in/ini.v1 v1.51.1 // indirect
 	k8s.io/api v0.20.6
 	k8s.io/apimachinery v0.20.6

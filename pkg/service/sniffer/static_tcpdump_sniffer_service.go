@@ -39,13 +39,13 @@ func (u *StaticTcpdumpSnifferService) Cleanup() error {
 	return nil
 }
 
-func (u *StaticTcpdumpSnifferService) Start(stdOut io.Writer) error {
+func executeTcpDump(pod, container string, service kube.KubernetesApiService, settings *config.KsniffSettings, stdOut io.Writer) error {
 	log.Info("start sniffing on remote container")
 
-	command := []string{u.settings.UserSpecifiedRemoteTcpdumpPath, "-i", u.settings.UserSpecifiedInterface,
-		"-U", "-w", "-", u.settings.UserSpecifiedFilter}
+	command := []string{settings.UserSpecifiedRemoteTcpdumpPath, "-i", settings.UserSpecifiedInterface,
+		"-U", "-w", "-", settings.UserSpecifiedFilter}
 
-	exitCode, err := u.kubernetesApiService.ExecuteCommand(u.settings.UserSpecifiedPodName, u.settings.UserSpecifiedContainer, command, stdOut)
+	exitCode, err := service.ExecuteCommand(pod, container, command, stdOut)
 	if err != nil || exitCode != 0 {
 		return errors.Errorf("executing sniffer failed, exit code: '%d'", exitCode)
 	}
@@ -53,4 +53,8 @@ func (u *StaticTcpdumpSnifferService) Start(stdOut io.Writer) error {
 	log.Infof("done sniffing on remote container")
 
 	return nil
+}
+
+func (u *StaticTcpdumpSnifferService) Start(stdOut io.Writer) error {
+	return executeTcpDump(u.settings.UserSpecifiedPodName, u.settings.UserSpecifiedContainer, u.kubernetesApiService, u.settings, stdOut)
 }
