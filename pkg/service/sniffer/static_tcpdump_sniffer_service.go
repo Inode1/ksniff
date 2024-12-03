@@ -42,7 +42,7 @@ func (u *StaticTcpdumpSnifferService) Cleanup() error {
 func executeTcpDump(pod, container string, service kube.KubernetesApiService, settings *config.KsniffSettings, stdOut io.Writer) error {
 	log.Info("start sniffing on remote container")
 
-	command := []string{settings.UserSpecifiedRemoteTcpdumpPath, "-i", settings.UserSpecifiedInterface,
+	command := []string{settings.UserSpecifiedRemoteTcpdumpPath, "-i", settings.UserSpecifiedInterface, settings.UserSpecifiedOptions,
 		"-U", "-w", "-", settings.UserSpecifiedFilter}
 
 	exitCode, err := service.ExecuteCommand(pod, container, command, stdOut)

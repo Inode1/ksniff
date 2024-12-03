@@ -14,7 +14,7 @@ func RunWhileFalse(fn func() bool, timeout time.Duration, delay time.Duration) b
 	}
 
 	// Timeout 0 is infinite timeout
-	if (timeout == 0) {
+	if timeout == 0 {
 		ctx, cancel = context.WithCancel(context.Background())
 	} else {
 		ctx, cancel = context.WithTimeout(context.Background(), timeout)

@@ -35,10 +35,10 @@ func (d *ContainerdBridge) SkipPull(cond bool) {
 	d.skipPull = cond
 }
 
-func (d *ContainerdBridge) BuildTcpdumpCommand(containerId *string, netInterface string, filter string, pid *string, socketPath string, tcpdumpImage string) []string {
+func (d *ContainerdBridge) BuildTcpdumpCommand(containerId *string, options, netInterface, filter string, pid *string, socketPath string, tcpdumpImage string) []string {
 	d.tcpdumpContainerName = "ksniff-container-" + utils.GenerateRandomString(8)
 	d.socketPath = socketPath
-	tcpdumpCommand := fmt.Sprintf("tcpdump -i %s -U -w - %s", netInterface, filter)
+	tcpdumpCommand := fmt.Sprintf("tcpdump -i %s %s -U -w - %s", netInterface, options, filter)
 	shellScript := fmt.Sprintf(`
     set -ex
     export CONTAINERD_SOCKET="%s"

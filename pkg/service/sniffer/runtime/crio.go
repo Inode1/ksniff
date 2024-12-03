@@ -52,8 +52,8 @@ func (c *CrioBridge) ExtractPid(inspection string) (*string, error) {
 	return &ret, nil
 }
 
-func (c *CrioBridge) BuildTcpdumpCommand(containerId *string, netInterface string, filter string, pid *string, socketPath string, tcpdumpImage string) []string {
-	return []string{"nsenter", "-n", "-t", *pid, "--", "tcpdump", "-i", netInterface, "-U", "-w", "-", filter}
+func (c *CrioBridge) BuildTcpdumpCommand(containerId *string, options, netInterface string, filter string, pid *string, socketPath string, tcpdumpImage string) []string {
+	return []string{"nsenter", "-n", "-t", *pid, "--", "tcpdump", "-i", netInterface, options, "-U", "-w", "-", filter}
 }
 
 func (c *CrioBridge) BuildCleanupCommand() []string {

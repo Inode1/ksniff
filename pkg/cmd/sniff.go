@@ -104,6 +104,10 @@ func NewCmdSniff(streams genericclioptions.IOStreams) *cobra.Command {
 	_ = viper.BindEnv("memory", "KUBECTL_PLUGINS_LOCAL_FLAG_MEMORY")
 	_ = viper.BindPFlag("memory", rootCmd.PersistentFlags().Lookup("memory"))
 
+	rootCmd.PersistentFlags().StringVar(&ksniffSettings.UserSpecifiedOptions, "options", "", "user specified tcpdump options (optional)")
+	_ = viper.BindEnv("options", "KUBECTL_PLUGINS_LOCAL_FLAG_OPTIONS")
+	_ = viper.BindPFlag("options", rootCmd.PersistentFlags().Lookup("options"))
+
 	return rootCmd
 }
 
@@ -121,6 +125,7 @@ func (o *Ksniff) Complete(cmd *cobra.Command, args []string) error {
 	o.settings.UserSpecifiedKubeContext = viper.GetString("context")
 	o.settings.UserSpecifiedCPU = viper.GetString("cpu")
 	o.settings.UserSpecifiedMemory = viper.GetString("memory")
+	o.settings.UserSpecifiedOptions = viper.GetString("options")
 	o.settings.Image = viper.GetString("image")
 	o.settings.TCPDumpImage = viper.GetString("tcpdump-image")
 	o.settings.SocketPath = viper.GetString("socket")
@@ -249,8 +254,8 @@ func (o *Ksniff) setupSignalHandler() chan interface{} {
 }
 
 func (o *Ksniff) Run() error {
-	log.Infof("sniffing on pod: '%s' [namespace: '%s', container: '%s', filter: '%s', interface: '%s']",
-		o.settings.UserSpecifiedPodName, o.resultingContext.Namespace, o.settings.UserSpecifiedContainer, o.settings.UserSpecifiedFilter, o.settings.UserSpecifiedInterface)
+	log.Infof("sniffing on pod: '%s' [namespace: '%s', container: '%s', filter: '%s', interface: '%s', options: '%s']",
+		o.settings.UserSpecifiedPodName, o.resultingContext.Namespace, o.settings.UserSpecifiedContainer, o.settings.UserSpecifiedFilter, o.settings.UserSpecifiedInterface, o.settings.UserSpecifiedOptions)
 
 	err := o.snifferService.Setup()
 	if err != nil {

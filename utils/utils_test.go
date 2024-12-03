@@ -44,7 +44,7 @@ func TestRunWhileFalse_NoTimeout(t *testing.T) {
 	}
 	// This part is tricky since we don't want our test case to run forever.
 	// Adding a timeout outside scope of RunWhileFalse
-	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	// when
@@ -54,7 +54,7 @@ func TestRunWhileFalse_NoTimeout(t *testing.T) {
 	}()
 
 	// then
-	<- ctx.Done()
+	<-ctx.Done()
 	assert.Equal(t, context.DeadlineExceeded, ctx.Err())
 }
 
@@ -64,7 +64,7 @@ func TestRuneWhileFalse_1SecTimeoutTrue(t *testing.T) {
 	f := func() bool {
 		return ret
 	}
-	time.AfterFunc(1 * time.Second, func() { ret = true })
+	time.AfterFunc(1*time.Second, func() { ret = true })
 
 	// when
 	result := RunWhileFalse(f, 5*time.Second, time.Second)

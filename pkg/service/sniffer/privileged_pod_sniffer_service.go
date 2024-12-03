@@ -116,6 +116,7 @@ func (p *PrivilegedPodSnifferService) Start(stdOut io.Writer) error {
 	command := p.runtimeBridge.BuildTcpdumpCommand(
 		&p.settings.DetectedContainerId,
 		p.settings.UserSpecifiedInterface,
+		p.settings.UserSpecifiedOptions,
 		p.settings.UserSpecifiedFilter,
 		p.targetProcessId,
 		p.settings.SocketPath,

@@ -21,6 +21,7 @@ type KsniffSettings struct {
 	UserSpecifiedImage             string
 	UserSpecifiedCPU               string
 	UserSpecifiedMemory            string
+	UserSpecifiedOptions           string
 	DetectedPodNodeName            string
 	DetectedContainerId            string
 	DetectedContainerRuntime       string
